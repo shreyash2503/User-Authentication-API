@@ -1,3 +1,4 @@
+import { log } from "console";
 import { Request, Response, NextFunction } from "express";
 import { AnyZodObject } from "zod";
 
@@ -10,6 +11,8 @@ const validate =
         query: req.query,
         params: req.params,
       });
+      log("Validated");
+      next();
     } catch (e: any) {
       return res.status(400).send(e.errors);
     }
