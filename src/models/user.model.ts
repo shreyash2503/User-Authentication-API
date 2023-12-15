@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 import config from "config";
+import { log } from "console";
 
 export interface UserInput {
   email: string;
@@ -33,8 +34,11 @@ userSchema.pre("save", async function (next) {
   if (!user.isModified("password")) {
     return next();
   }
-  const salt = await bcrypt.genSalt(config.get<number>("saltWorkFactor"));
-  user.password = salt;
+  const salt = await bcrypt.hash(
+    this.password,
+    config.get<number>("saltWorkFactor")
+  );
+  this.password = salt;
   return next();
 });
 
@@ -42,9 +46,13 @@ userSchema.methods.comparePassword = async function (
   candidatePassword: string
 ): Promise<boolean> {
   const user = this as UserDocument;
-  return bcrypt.compare(candidatePassword, user.password).catch((e) => false);
+  log("This is the user password");
+  log(user.password);
+  log("This is the candidate Password");
+  log(candidatePassword);
+  return await bcrypt.compare(candidatePassword, user.password);
 };
 
-const UserModel = mongoose.model("User", userSchema);
+const UserModel = mongoose.model<UserDocument>("User", userSchema);
 
 export default UserModel;
